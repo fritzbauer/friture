@@ -93,6 +93,7 @@ class __AudioBackend(QtCore.QObject):
         self.ringBuffer = None
         self.action = None
         self.nchannels_max = 0
+        self.reference_sound_pressure = 20e-6
 
         # we will try to open all the input devices until one
         # works, starting by the default input device
@@ -155,6 +156,15 @@ class __AudioBackend(QtCore.QObject):
             devices_list += [desc]
 
         return devices_list
+
+    # method
+    def get_reference_sound_pressure(self):
+        return self.reference_sound_pressure
+    
+    # method
+    def set_reference_sound_pressure(self, value):
+        print(f"setting reference_sound_pressure: {value * 1e-6}")
+        self.reference_sound_pressure = value * 1e-6
 
     # method
     def get_readable_output_devices_list(self):

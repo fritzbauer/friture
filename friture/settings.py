@@ -76,11 +76,16 @@ class Settings_Dialog(QtWidgets.QDialog, Ui_Settings_Dialog):
         self.comboBox_secondChannel.activated.connect(self.second_channel_changed)
         self.radioButton_single.toggled.connect(self.single_input_type_selected)
         self.radioButton_duo.toggled.connect(self.duo_input_type_selected)
+        self.spinBox_reference_sound_pressure.valueChanged.connect(self.reference_sound_pressure_changed)
 
     # slot
     # used when no audio input device has been found, to exit immediately
     def exitOnInit(self):
         QtWidgets.QApplication.instance().quit()
+
+    # slot
+    def reference_sound_pressure_changed(self, value):
+        AudioBackend().set_reference_sound_pressure(value)
 
     # slot
     def input_device_changed(self, index):
@@ -170,6 +175,7 @@ class Settings_Dialog(QtWidgets.QDialog, Ui_Settings_Dialog):
         settings.setValue("firstChannel", self.comboBox_firstChannel.currentIndex())
         settings.setValue("secondChannel", self.comboBox_secondChannel.currentIndex())
         settings.setValue("duoInput", self.inputTypeButtonGroup.checkedId())
+        settings.setValue("referenceSoundPressure", self.spinBox_reference_sound_pressure.value())
 
     # method
     def restoreState(self, settings):
@@ -184,3 +190,5 @@ class Settings_Dialog(QtWidgets.QDialog, Ui_Settings_Dialog):
             self.comboBox_secondChannel.setCurrentIndex(channel)
             duo_input_id = settings.value("duoInput", 0, type=int)
             self.inputTypeButtonGroup.button(duo_input_id).setChecked(True)
+            reference_sound_pressure = settings.value("referenceSoundPressure", 20, type=int)
+            self.spinBox_reference_sound_pressure.setValue(reference_sound_pressure)

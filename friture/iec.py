@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Friture.  If not, see <http://www.gnu.org/licenses/>.
 
-def dB_to_IEC(dB):
+def dB_to_IEC2(dB):
     if dB < -70.0:
         return 0.0
     elif dB < -60.0:
@@ -29,6 +29,23 @@ def dB_to_IEC(dB):
     elif dB < -30.0:
         return (dB + 40.0) * 0.015 + 0.15
     elif dB < -20.0:
+        return (dB + 30.0) * 0.02 + 0.3
+    else:  # if dB < 0.0
+        return (dB + 20.0) * 0.025 + 0.5
+
+def dB_to_SPL(dB):
+    return dB * 0.01
+    if dB < 10.0:
+        return 0.0
+    elif dB < 20.0:
+        return (dB + 70.0) * 0.0025
+    elif dB < 30.0:
+        return (dB + 60.0) * 0.005 + 0.025
+    elif dB < 50.0:
+        return (dB + 50.0) * 0.0075 + 0.075
+    elif dB < 80.0:
+        return (dB + 40.0) * 0.015 + 0.15
+    elif dB < 100.0:
         return (dB + 30.0) * 0.02 + 0.3
     else:  # if dB < 0.0
         return (dB + 20.0) * 0.025 + 0.5

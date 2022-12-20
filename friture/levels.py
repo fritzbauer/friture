@@ -19,19 +19,23 @@
 
 """Level widget that displays peak and RMS levels for 1 or 2 ports."""
 
+import logging
+
 from PyQt5 import QtWidgets
 from PyQt5.QtQml import QQmlComponent
 from PyQt5.QtQuick import QQuickWindow
 import numpy as np
+from scipy.signal import sosfilt
 
 from friture.store import GetStore
 from friture.levels_settings import Levels_Settings_Dialog  # settings dialog
 from friture.audioproc import audioproc
 from friture.level_view_model import LevelViewModel
-from friture.iec import dB_to_IEC
+from friture.iec import dB_to_SPL
 from friture_extensions.exp_smoothing_conv import pyx_exp_smoothed_value
-from friture.audiobackend import SAMPLING_RATE
+from friture.audiobackend import SAMPLING_RATE, AudioBackend
 from friture.qml_tools import qml_url, raise_if_error
+from friture.signal.weighting import A_weighting 
 
 SMOOTH_DISPLAY_TIMER_PERIOD_MS = 25
 LEVEL_TEXT_LABEL_PERIOD_MS = 250
@@ -42,6 +46,7 @@ class Levels_Widget(QtWidgets.QWidget):
 
     def __init__(self, parent, engine):
         super().__init__(parent)
+        self.logger = logging.getLogger(__name__)
         self.setObjectName("Levels_Widget")
 
         self.gridLayout = QtWidgets.QVBoxLayout(self)
@@ -104,6 +109,10 @@ class Levels_Widget(QtWidgets.QWidget):
 
         self.i = 0
 
+        self.weighting_filter = A_weighting(SAMPLING_RATE, output='sos')
+        self.logger.info(self.weighting_filter)
+        self.counter = 0
+
     def onWidthChanged(self):
         self.quickWidget.setFixedWidth(int(self.qmlObject.width()))
 
@@ -122,6 +131,15 @@ class Levels_Widget(QtWidgets.QWidget):
         # first channel
         y1 = floatdata[0, :]
 
+        if self.counter == 0:
+            self.counter = 1
+            self.logger.info(f"Length: {len(y1)}")
+
+        if len(y1) < len(self.weighting_filter):
+            self.logger.info(f"ERROR: {len(self.weighting_filter)} samples required but received only {len(y1)} samples.")
+
+        y1 = sosfilt(self.weighting_filter, y1)
+
         # exponential smoothing for max
         if len(y1) > 0:
             value_max = np.abs(y1).max()
@@ -129,15 +147,22 @@ class Levels_Widget(QtWidgets.QWidget):
                 self.old_max = value_max
             else:
                 # exponential decrease
+                #self.old_max = value_max
                 self.old_max *= (1. - self.alpha2)
 
         # exponential smoothing for RMS
         value_rms = pyx_exp_smoothed_value(self.kernel, self.alpha, y1 ** 2, self.old_rms)
         self.old_rms = value_rms
 
-        self.level_view_model.level_data.level_rms = 10. * np.log10(value_rms + 0. * 1e-80)
-        self.level_view_model.level_data.level_max = 20. * np.log10(self.old_max + 0. * 1e-80)
-        self.level_view_model.level_data_ballistic.peak_iec = dB_to_IEC(max(self.level_view_model.level_data.level_max, self.level_view_model.level_data.level_rms))
+        reference_sound_pressure = AudioBackend().get_reference_sound_pressure()
+        self.level_view_model.level_data.level_rms = 20. * np.log10(value_rms/reference_sound_pressure + 0. * 1e-80)
+        self.level_view_model.level_data.level_max = 20. * np.log10(self.old_max/reference_sound_pressure + 0. * 1e-80)
+        #if self.counter < 200:
+        #    self.logger.info(f"RMS: {self.level_view_model.level_data.level_rms}")
+        #    self.counter += 1
+        #self.level_view_model.level_data.level_rms = 10. * np.log10(value_rms + 0. * 1e-80)
+        #self.level_view_model.level_data.level_max = 20. * np.log10(self.old_max + 0. * 1e-80)
+        self.level_view_model.level_data_ballistic.peak_iec = dB_to_SPL(max(self.level_view_model.level_data.level_max, self.level_view_model.level_data.level_rms))
 
         if self.two_channels:
             # second channel
@@ -158,7 +183,7 @@ class Levels_Widget(QtWidgets.QWidget):
 
             self.level_view_model.level_data_2.level_rms = 10. * np.log10(value_rms + 0. * 1e-80)
             self.level_view_model.level_data_2.level_max = 20. * np.log10(self.old_max_2 + 0. * 1e-80)
-            self.level_view_model.level_data_ballistic_2.peak_iec = dB_to_IEC(max(self.level_view_model.level_data_2.level_max, self.level_view_model.level_data_2.level_rms))
+            self.level_view_model.level_data_ballistic_2.peak_iec = dB_to_SPL(max(self.level_view_model.level_data_2.level_max, self.level_view_model.level_data_2.level_rms))
 
     # method
     def canvasUpdate(self):

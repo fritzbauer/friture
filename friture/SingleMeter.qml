@@ -30,7 +30,7 @@ Rectangle {
 
     Item {
         implicitWidth: parent.width
-        implicitHeight: IECFunctions.dB_to_IEC(levelMax) * (parent.height - topOffset)
+        implicitHeight: IECFunctions.dB_to_SPL(levelMax) * (parent.height - topOffset)
         anchors.bottom: parent.bottom
         clip: true
 
@@ -46,7 +46,7 @@ Rectangle {
 
     Item {
         implicitWidth: parent.width
-        implicitHeight: IECFunctions.dB_to_IEC(levelRms) * (parent.height - topOffset)
+        implicitHeight: IECFunctions.dB_to_SPL(levelRms) * (parent.height - topOffset)
         anchors.bottom: parent.bottom
         clip: true
 

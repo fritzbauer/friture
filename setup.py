@@ -57,6 +57,7 @@ install_requires = [
     "PyQt5==5.15.7",
     "appdirs==1.4.4",
     "pyrr==0.10.3",
+    "scipy"
 ]
 
 # Cython and numpy are needed when running setup.py, to build extensions

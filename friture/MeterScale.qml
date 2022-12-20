@@ -13,15 +13,17 @@ Item {
     ListModel {
         id: scaleModel
 
+        ListElement { dB: 100 }
+        ListElement { dB: 90 }
+        ListElement { dB: 80 }
+        ListElement { dB: 70 }
+        ListElement { dB: 60 }
+        ListElement { dB: 50 }
+        ListElement { dB: 40 }
+        ListElement { dB: 30 }
+        ListElement { dB: 20 }
+        ListElement { dB: 10 }
         ListElement { dB: 0 }
-        ListElement { dB: -3 }
-        ListElement { dB: -6 }
-        ListElement { dB: -10 }
-        ListElement { dB: -20 }
-        ListElement { dB: -30 }
-        ListElement { dB: -40 }
-        ListElement { dB: -50 }
-        ListElement { dB: -60 }
     }
 
     Repeater {
@@ -66,7 +68,7 @@ Item {
             }
 
             function pathY(dB) {
-                var iec = IECFunctions.dB_to_IEC(dB);
+                var iec = IECFunctions.dB_to_SPL(dB);
                 return Math.round((metersLayout.height - meterScale.topOffset) * (1. - iec) + meterScale.topOffset)
             }
         }

@@ -15,7 +15,7 @@ class Ui_Settings_Dialog(object):
 
     def setupUi(self, Settings_Dialog):
         Settings_Dialog.setObjectName("Settings_Dialog")
-        Settings_Dialog.resize(483, 275)
+        Settings_Dialog.resize(483, 375)
         icon = QtGui.QIcon()
         icon.addPixmap(QtGui.QPixmap(":/images-src/tools.svg"), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         Settings_Dialog.setWindowIcon(icon)
@@ -74,6 +74,19 @@ class Ui_Settings_Dialog(object):
         self.horizontalLayout.addLayout(self.verticalLayout_4)
         self.verticalLayout_5.addLayout(self.horizontalLayout)
 
+        self.label_reference_sound_pressure = QtWidgets.QLabel(Settings_Dialog)
+        self.label_reference_sound_pressure.setObjectName("label_reference_sound_pressure")
+        self.verticalLayout_5.addWidget(self.label_reference_sound_pressure)
+
+        self.spinBox_reference_sound_pressure = QtWidgets.QSpinBox(Settings_Dialog)
+        self.spinBox_reference_sound_pressure.setKeyboardTracking(False)
+        self.spinBox_reference_sound_pressure.setMinimum(0)
+        self.spinBox_reference_sound_pressure.setMaximum(2000)
+        self.spinBox_reference_sound_pressure.setProperty("value", 20)
+        self.spinBox_reference_sound_pressure.setObjectName("spinBox_reference_sound_pressure")
+        self.spinBox_reference_sound_pressure.setSuffix(" µP")
+        self.verticalLayout_5.addWidget(self.spinBox_reference_sound_pressure)
+
         self.retranslateUi(Settings_Dialog)
         QtCore.QMetaObject.connectSlotsByName(Settings_Dialog)
 
@@ -86,3 +99,4 @@ class Ui_Settings_Dialog(object):
         self.radioButton_duo.setText(_translate("Settings_Dialog", "Two channels"))
         self.groupBox_first.setTitle(_translate("Settings_Dialog", "First channel"))
         self.groupBox_second.setTitle(_translate("Settings_Dialog", "Second channel"))
+        self.label_reference_sound_pressure.setText(_translate("Settings_Dialog", "Reference sound pressure :"))
