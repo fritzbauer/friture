@@ -80,8 +80,8 @@ Rectangle {
     }
 
     function level_to_text(dB) {
-        if (dB < -150.) {
-            return "-Inf";
+        if (dB < -0.) {
+            return "0";
         }
 
         return dB.toFixed(1);

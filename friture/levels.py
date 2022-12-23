@@ -151,12 +151,12 @@ class Levels_Widget(QtWidgets.QWidget):
                 self.old_max *= (1. - self.alpha2)
 
         # exponential smoothing for RMS
-        value_rms = pyx_exp_smoothed_value(self.kernel, self.alpha, y1 ** 2, self.old_rms)
+        value_rms = pyx_exp_smoothed_value(self.kernel, self.alpha, y1 ** 2, self.old_rms) 
         self.old_rms = value_rms
 
-        reference_sound_pressure = AudioBackend().get_reference_sound_pressure()
-        self.level_view_model.level_data.level_rms = 20. * np.log10(value_rms/reference_sound_pressure + 0. * 1e-80)
-        self.level_view_model.level_data.level_max = 20. * np.log10(self.old_max/reference_sound_pressure + 0. * 1e-80)
+        mic_sensitivity = AudioBackend().get_mic_sensitivity()
+        self.level_view_model.level_data.level_rms = 94 - mic_sensitivity + 10. * np.log10(value_rms + 0. * 1e-80)
+        self.level_view_model.level_data.level_max = 94 - 3 - mic_sensitivity + 20. * np.log10(self.old_max + 0. * 1e-80)
         #if self.counter < 200:
         #    self.logger.info(f"RMS: {self.level_view_model.level_data.level_rms}")
         #    self.counter += 1
