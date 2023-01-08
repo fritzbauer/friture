@@ -25,7 +25,7 @@ from PyQt5 import QtWidgets
 from PyQt5.QtQml import QQmlComponent
 from PyQt5.QtQuick import QQuickWindow
 import numpy as np
-from scipy.signal import sosfilt
+from scipy.signal import sosfilt, sosfilt_zi
 
 from friture.store import GetStore
 from friture.levels_settings import Levels_Settings_Dialog  # settings dialog
@@ -110,6 +110,7 @@ class Levels_Widget(QtWidgets.QWidget):
         self.i = 0
 
         self.weighting_filter = A_weighting(SAMPLING_RATE, output='sos')
+        self.weighting_filter_zi = sosfilt_zi(self.weighting_filter)
         self.logger.info(self.weighting_filter)
         self.counter = 0
 
@@ -138,7 +139,7 @@ class Levels_Widget(QtWidgets.QWidget):
         if len(y1) < len(self.weighting_filter):
             self.logger.info(f"ERROR: {len(self.weighting_filter)} samples required but received only {len(y1)} samples.")
 
-        y1 = sosfilt(self.weighting_filter, y1)
+        y1, self.weighting_filter_zi = sosfilt(self.weighting_filter, y1, zi=self.weighting_filter_zi)
 
         # exponential smoothing for max
         if len(y1) > 0:
