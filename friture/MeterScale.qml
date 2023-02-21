@@ -5,10 +5,40 @@ import "iec.js" as IECFunctions
 
 Item {
     id: meterScale
+    objectName: "meterScale"
     implicitWidth: 16
 
     required property int topOffset
     required property bool twoChannels
+    property var scaleMode
+
+    function toggle(mode) {
+        scaleMode = mode
+        if(mode == "RMS") {
+            scaleModel.set(10,{ dB: 0 })
+            scaleModel.set(9, { dB: -3 })
+            scaleModel.set(8, { dB: -6 })
+            scaleModel.set(7, { dB: -10 })
+            scaleModel.set(6, { dB: -20 })
+            scaleModel.set(5, { dB: -30 })
+            scaleModel.set(4, { dB: -40 })
+            scaleModel.set(3, { dB: -50 })
+            scaleModel.set(2, { dB: -60 })
+            scaleModel.set(1, { dB: -60 })
+            scaleModel.set(0, { dB: -60 })
+        } else {
+            scaleModel.set(10, {dB: 11})
+            scaleModel.set(9,  {dB: 22})
+            scaleModel.set(8,  {dB: 33})
+            scaleModel.set(7,  {dB: 40})
+            scaleModel.set(6,  {dB: 50})
+            scaleModel.set(5,  {dB: 60})
+            scaleModel.set(4,  {dB: 70})
+            scaleModel.set(3,  {dB: 80})
+            scaleModel.set(2,  {dB: 90})
+            scaleModel.set(1,  {dB: 100})
+        }
+    }
 
     ListModel {
         id: scaleModel
@@ -68,7 +98,12 @@ Item {
             }
 
             function pathY(dB) {
-                var iec = IECFunctions.dB_to_SPL(dB);
+                var iec
+                if(scaleMode == "RMS") {
+                    iec = IECFunctions.dB_to_IEC(dB);
+                } else {
+                    iec = IECFunctions.dB_to_SPL(dB);
+                }
                 return Math.round((metersLayout.height - meterScale.topOffset) * (1. - iec) + meterScale.topOffset)
             }
         }

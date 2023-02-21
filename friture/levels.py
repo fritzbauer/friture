@@ -21,9 +21,13 @@
 
 import logging
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtQml import QQmlComponent
 from PyQt5.QtQuick import QQuickWindow
+from PyQt5.QtCore import QStringListModel
+from PyQt5.QtCore import QMetaObject, Q_ARG, QVariant
+
+
 import numpy as np
 from scipy.signal import sosfilt, sosfilt_zi
 
@@ -36,6 +40,7 @@ from friture_extensions.exp_smoothing_conv import pyx_exp_smoothed_value
 from friture.audiobackend import SAMPLING_RATE, AudioBackend
 from friture.qml_tools import qml_url, raise_if_error
 from friture.signal.weighting import A_weighting 
+
 
 SMOOTH_DISPLAY_TIMER_PERIOD_MS = 25
 LEVEL_TEXT_LABEL_PERIOD_MS = 250
@@ -59,10 +64,30 @@ class Levels_Widget(QtWidgets.QWidget):
 
         self.quickWindow = QQuickWindow()
         component = QQmlComponent(engine, qml_url("Levels.qml"), self)
-        raise_if_error(component)
+        
+        scaleModelData = [
+            "100", "99", "80", "70", "60", "50", "40", "30", "20", "10", "0"            
+        ]
+        #scaleModel = QStringListModel()
+        #scaleModel.setStringList(scaleModelData)
+
+        #ListModel = [
+        #    ListElement { dB: 100 }
+        #    ListElement { dB: 90 }
+        #    ListElement { dB: 80 }
+        #    ListElement { dB: 70 }
+        #    ListElement { dB: 60 }
+        #    ListElement { dB: 50 }
+        #    ListElement { dB: 40 }
+        #    ListElement { dB: 30 }
+        #    ListElement { dB: 20 }
+        #    ListElement { dB: 10 }
+        #    ListElement { dB: 0 }
+        #]
 
         engineContext = engine.rootContext()
-        initialProperties = {"parent": self.quickWindow.contentItem(), "stateId": state_id }
+        #initialProperties = {"parent": self.quickWindow.contentItem(), "stateId": state_id, "levelScale" : scaleModel}
+        initialProperties = {"parent": self.quickWindow.contentItem(), "stateId": state_id}
         self.qmlObject = component.createWithInitialProperties(initialProperties, engineContext)
         self.qmlObject.setParent(self.quickWindow)
 
@@ -72,6 +97,14 @@ class Levels_Widget(QtWidgets.QWidget):
 
         self.qmlObject.widthChanged.connect(self.onWidthChanged)
         self.onWidthChanged()
+
+        #lm = component.findChild(QtWidgets.QWidget, "levelsMeter")
+        #print(f"LM: {lm}")
+        #ms = lm.findChild(QtWidgets.QWidget, "meterScale")
+        #print(f"MS: {ms}")
+        #print(component.levelsMeter.meterScale.scaleModel)
+        
+        raise_if_error(component)
 
         self.audiobuffer = None
 
@@ -112,7 +145,17 @@ class Levels_Widget(QtWidgets.QWidget):
         self.weighting_filter = A_weighting(SAMPLING_RATE, output='sos')
         self.weighting_filter_zi = sosfilt_zi(self.weighting_filter)
         self.logger.info(self.weighting_filter)
-        self.counter = 0
+        self.counter = 0        
+
+    def findMeterScale(self, objs):
+        for obj in objs.children():
+            ms = self.findMeterScale(obj)
+            if ms is not None:
+                return ms
+            if obj.objectName() == "meterScale":
+                return obj
+        return None
+            
 
     def onWidthChanged(self):
         self.quickWidget.setFixedWidth(int(self.qmlObject.width()))
@@ -120,6 +163,14 @@ class Levels_Widget(QtWidgets.QWidget):
     # method
     def set_buffer(self, buffer):
         self.audiobuffer = buffer
+
+    def print_names(self, ob):        
+        for c in ob.children():
+            print(c.objectName)
+            if "QAbstractListModel" in str(c.objectName):
+                print("fffffound")
+                self.list = c
+            self.print_names(c)
 
     def handle_new_data(self, floatdata):
         if floatdata.shape[0] > 1 and not self.two_channels:
@@ -133,6 +184,27 @@ class Levels_Widget(QtWidgets.QWidget):
         y1 = floatdata[0, :]
 
         if self.counter == 0:
+            #sm = self.qmlObject.findChild(qqml)
+            sm = self.qmlObject.findChildren(QtCore.QStringListModel)
+            #sm = self.qmlObject.findChildren(QtCore.QAbstractListModel)
+            print(len(sm))
+            #print(QtCore.QStringListModel(sm[0]).rowCount())
+            #QQmlListModel
+            #print(sm)
+
+            #print(self.qmlObject.dumpObjectTree())
+            ob = self.findMeterScale(self.qmlObject)
+
+            print("MS: " + ob.objectName())
+            #print("MS:" + self.qmlObject.findChild("meterScale"))
+            QMetaObject.invokeMethod(ob, "toggle", Q_ARG(QVariant, "RMS"))
+            
+            self.print_names(self.qmlObject)
+            print("List:")
+            #print(self.list.index(3).data(role = QtCore.Qt.DisplayRole))
+            #self.list.index(3).data(role = QtCore.Qt.DisplayRole) = 200
+                #print(c.objectName)
+            #print(f"SM: {sm.levelsMeter}")
             self.counter = 1
             self.logger.info(f"Length: {len(y1)}")
 
@@ -203,8 +275,12 @@ class Levels_Widget(QtWidgets.QWidget):
  
         self.i = self.i % LEVEL_TEXT_LABEL_STEPS
 
+        level_mode = AudioBackend().get_level_mode()
+        meterScale = self.findMeterScale(self.qmlObject)
+        QMetaObject.invokeMethod(meterScale, "toggle", Q_ARG(QVariant, level_mode))
+
     # slot
-    def settings_called(self, checked):
+    def settings_called(self, checked):       
         self.settings_dialog.show()
 
     # method

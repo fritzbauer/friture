@@ -94,6 +94,7 @@ class __AudioBackend(QtCore.QObject):
         self.action = None
         self.nchannels_max = 0
         self.mic_sensitivity = 0
+        self.level_mode = "RMS"
 
         # we will try to open all the input devices until one
         # works, starting by the default input device
@@ -163,8 +164,15 @@ class __AudioBackend(QtCore.QObject):
     
     # method
     def set_mic_sensitivity(self, value):
-        print(f"setting mic sensitivity: {value}")
         self.mic_sensitivity = value
+
+    # method
+    def get_level_mode(self):
+        return self.level_mode
+
+    # method
+    def set_level_mode(self, value):
+        self.level_mode = value
 
     # method
     def get_readable_output_devices_list(self):

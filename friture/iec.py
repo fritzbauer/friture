@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Friture.  If not, see <http://www.gnu.org/licenses/>.
 
-def dB_to_IEC2(dB):
+def dB_to_IEC(dB):
     if dB < -70.0:
         return 0.0
     elif dB < -60.0:

@@ -77,6 +77,8 @@ class Settings_Dialog(QtWidgets.QDialog, Ui_Settings_Dialog):
         self.radioButton_single.toggled.connect(self.single_input_type_selected)
         self.radioButton_duo.toggled.connect(self.duo_input_type_selected)
         self.spinBox_mic_sensitivity.valueChanged.connect(self.mic_sensitivity_changed)
+        self.radioButton_RMSMode.toggled.connect(self.rms_mode_selected)
+        self.radioButton_dBAMode.toggled.connect(self.dba_mode_selected)
 
     # slot
     # used when no audio input device has been found, to exit immediately
@@ -85,6 +87,7 @@ class Settings_Dialog(QtWidgets.QDialog, Ui_Settings_Dialog):
 
     # slot
     def mic_sensitivity_changed(self, value):
+        self.logger.info(f"Mic sensitivity changed to {value}.")
         AudioBackend().set_mic_sensitivity(value)
 
     # slot
@@ -167,6 +170,18 @@ class Settings_Dialog(QtWidgets.QDialog, Ui_Settings_Dialog):
             AudioBackend().set_duo_input()
             self.logger.info("Switching to difference between two inputs")
 
+    # slot
+    def rms_mode_selected(self, checked):
+        if checked:
+            AudioBackend().set_level_mode("RMS")
+            self.logger.info("Switching to level mode RMS")
+
+    # slot
+    def dba_mode_selected(self, checked):
+        if checked:
+            AudioBackend().set_level_mode("dBA")
+            self.logger.info("Switching to level mode dBA")
+
     # method
     def saveState(self, settings):
         # for the input device, we search by name instead of index, since
@@ -176,6 +191,7 @@ class Settings_Dialog(QtWidgets.QDialog, Ui_Settings_Dialog):
         settings.setValue("secondChannel", self.comboBox_secondChannel.currentIndex())
         settings.setValue("duoInput", self.inputTypeButtonGroup.checkedId())
         settings.setValue("micSensitivity", self.spinBox_mic_sensitivity.value())
+        settings.setValue("levelMode", self.levelModeButtonGroup.checkedId())
 
     # method
     def restoreState(self, settings):
@@ -192,3 +208,5 @@ class Settings_Dialog(QtWidgets.QDialog, Ui_Settings_Dialog):
             self.inputTypeButtonGroup.button(duo_input_id).setChecked(True)
             mic_sensitivity = settings.value("micSensitivity", 0, type=int)
             self.spinBox_mic_sensitivity.setValue(mic_sensitivity)
+            level_mode_id = settings.value("levelMode", 0, type=int)
+            self.levelModeButtonGroup.button(level_mode_id).setChecked(True)

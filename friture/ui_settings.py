@@ -87,6 +87,21 @@ class Ui_Settings_Dialog(object):
         self.spinBox_mic_sensitivity.setSuffix(" dB")
         self.verticalLayout_5.addWidget(self.spinBox_mic_sensitivity)
 
+        self.label_levelMode = QtWidgets.QLabel(Settings_Dialog)
+        self.label_levelMode.setObjectName("label_levelMode")
+        self.verticalLayout_5.addWidget(self.label_levelMode)
+        self.radioButton_RMSMode = QtWidgets.QRadioButton(Settings_Dialog)
+        self.radioButton_RMSMode.setChecked(True)
+        self.radioButton_RMSMode.setObjectName("radioButton_RMSMode")
+        self.levelModeButtonGroup = QtWidgets.QButtonGroup(Settings_Dialog)
+        self.levelModeButtonGroup.setObjectName("levelModeButtonGroup")
+        self.levelModeButtonGroup.addButton(self.radioButton_RMSMode)
+        self.verticalLayout_5.addWidget(self.radioButton_RMSMode)
+        self.radioButton_dBAMode = QtWidgets.QRadioButton(Settings_Dialog)
+        self.radioButton_dBAMode.setObjectName("radioButton_dBAMode")
+        self.levelModeButtonGroup.addButton(self.radioButton_dBAMode)
+        self.verticalLayout_5.addWidget(self.radioButton_dBAMode)
+
         self.retranslateUi(Settings_Dialog)
         QtCore.QMetaObject.connectSlotsByName(Settings_Dialog)
 
@@ -100,3 +115,7 @@ class Ui_Settings_Dialog(object):
         self.groupBox_first.setTitle(_translate("Settings_Dialog", "First channel"))
         self.groupBox_second.setTitle(_translate("Settings_Dialog", "Second channel"))
         self.label_mic_sensitivity.setText(_translate("Settings_Dialog", "Mic sensitivity :"))
+        self.label_levelMode.setText(_translate("Settings_Dialog", "Show levels as :"))
+        self.radioButton_RMSMode.setText(_translate("Settings_Dialog", "RMS"))
+        self.radioButton_dBAMode.setText(_translate("Settings_Dialog", "dB(A)"))
+        

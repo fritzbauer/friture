@@ -1,4 +1,4 @@
-function dB_to_IEC2(dB) {
+function dB_to_IEC(dB) {
     if (dB < -70.0) {
         return 0.0;
     } else if (dB < -60.0) {
