@@ -35,7 +35,7 @@ from friture.store import GetStore
 from friture.levels_settings import Levels_Settings_Dialog  # settings dialog
 from friture.audioproc import audioproc
 from friture.level_view_model import LevelViewModel
-from friture.iec import dB_to_SPL
+from friture.iec import dB_to_IEC, dB_to_SPL
 from friture_extensions.exp_smoothing_conv import pyx_exp_smoothed_value
 from friture.audiobackend import SAMPLING_RATE, AudioBackend
 from friture.qml_tools import qml_url, raise_if_error
@@ -147,12 +147,12 @@ class Levels_Widget(QtWidgets.QWidget):
         self.logger.info(self.weighting_filter)
         self.counter = 0        
 
-    def findMeterScale(self, objs):
+    def findObject(self, objs, objectName):
         for obj in objs.children():
-            ms = self.findMeterScale(obj)
+            ms = self.findObject(obj, objectName)
             if ms is not None:
                 return ms
-            if obj.objectName() == "meterScale":
+            if obj.objectName() == objectName:
                 return obj
         return None
             
@@ -193,11 +193,11 @@ class Levels_Widget(QtWidgets.QWidget):
             #print(sm)
 
             #print(self.qmlObject.dumpObjectTree())
-            ob = self.findMeterScale(self.qmlObject)
+            #ob = self.findMeterScale(self.qmlObject)
 
-            print("MS: " + ob.objectName())
+            #print("MS: " + ob.objectName())
             #print("MS:" + self.qmlObject.findChild("meterScale"))
-            QMetaObject.invokeMethod(ob, "toggle", Q_ARG(QVariant, "RMS"))
+            #QMetaObject.invokeMethod(ob, "toggle", Q_ARG(QVariant, "RMS"))
             
             self.print_names(self.qmlObject)
             print("List:")
@@ -208,10 +208,12 @@ class Levels_Widget(QtWidgets.QWidget):
             self.counter = 1
             self.logger.info(f"Length: {len(y1)}")
 
-        if len(y1) < len(self.weighting_filter):
-            self.logger.info(f"ERROR: {len(self.weighting_filter)} samples required but received only {len(y1)} samples.")
 
-        y1, self.weighting_filter_zi = sosfilt(self.weighting_filter, y1, zi=self.weighting_filter_zi)
+        if(AudioBackend().get_level_mode() == "dbA"):
+            if len(y1) < len(self.weighting_filter):
+                self.logger.info(f"ERROR: {len(self.weighting_filter)} samples required but received only {len(y1)} samples.")
+
+            y1, self.weighting_filter_zi = sosfilt(self.weighting_filter, y1, zi=self.weighting_filter_zi)
 
         # exponential smoothing for max
         if len(y1) > 0:
@@ -224,18 +226,23 @@ class Levels_Widget(QtWidgets.QWidget):
                 self.old_max *= (1. - self.alpha2)
 
         # exponential smoothing for RMS
-        value_rms = pyx_exp_smoothed_value(self.kernel, self.alpha, y1 ** 2, self.old_rms) 
+        value_rms = pyx_exp_smoothed_value(self.kernel, self.alpha, y1 ** 2, self.old_rms)
         self.old_rms = value_rms
 
-        mic_sensitivity = AudioBackend().get_mic_sensitivity()
-        self.level_view_model.level_data.level_rms = 94 - mic_sensitivity + 10. * np.log10(value_rms + 0. * 1e-80)
-        self.level_view_model.level_data.level_max = 94 - 3 - mic_sensitivity + 20. * np.log10(self.old_max + 0. * 1e-80)
-        #if self.counter < 200:
-        #    self.logger.info(f"RMS: {self.level_view_model.level_data.level_rms}")
-        #    self.counter += 1
-        #self.level_view_model.level_data.level_rms = 10. * np.log10(value_rms + 0. * 1e-80)
-        #self.level_view_model.level_data.level_max = 20. * np.log10(self.old_max + 0. * 1e-80)
-        self.level_view_model.level_data_ballistic.peak_iec = dB_to_SPL(max(self.level_view_model.level_data.level_max, self.level_view_model.level_data.level_rms))
+        if(AudioBackend().get_level_mode() == "RMS"):
+            self.level_view_model.level_data.level_rms = 10. * np.log10(value_rms + 0. * 1e-80)
+            self.level_view_model.level_data.level_max = 20. * np.log10(self.old_max + 0. * 1e-80)
+            self.level_view_model.level_data_ballistic.peak_iec = dB_to_IEC(max(self.level_view_model.level_data.level_max, self.level_view_model.level_data.level_rms))
+        else:
+            mic_sensitivity = AudioBackend().get_mic_sensitivity()
+            self.level_view_model.level_data.level_rms = 94 - mic_sensitivity + 10. * np.log10(value_rms + 0. * 1e-80)
+            self.level_view_model.level_data.level_max = 94 - 3 - mic_sensitivity + 20. * np.log10(self.old_max + 0. * 1e-80)
+            #if self.counter < 200:
+            #    self.logger.info(f"RMS: {self.level_view_model.level_data.level_rms}")
+            #    self.counter += 1
+            #self.level_view_model.level_data.level_rms = 10. * np.log10(value_rms + 0. * 1e-80)
+            #self.level_view_model.level_data.level_max = 20. * np.log10(self.old_max + 0. * 1e-80)
+            self.level_view_model.level_data_ballistic.peak_iec = dB_to_SPL(max(self.level_view_model.level_data.level_max, self.level_view_model.level_data.level_rms))
 
         if self.two_channels:
             # second channel
@@ -254,9 +261,14 @@ class Levels_Widget(QtWidgets.QWidget):
             value_rms = pyx_exp_smoothed_value(self.kernel, self.alpha, y2 ** 2, self.old_rms_2)
             self.old_rms_2 = value_rms
 
-            self.level_view_model.level_data_2.level_rms = 10. * np.log10(value_rms + 0. * 1e-80)
-            self.level_view_model.level_data_2.level_max = 20. * np.log10(self.old_max_2 + 0. * 1e-80)
-            self.level_view_model.level_data_ballistic_2.peak_iec = dB_to_SPL(max(self.level_view_model.level_data_2.level_max, self.level_view_model.level_data_2.level_rms))
+            if(AudioBackend().get_level_mode() == "RMS"):
+                self.level_view_model.level_data_2.level_rms = 10. * np.log10(value_rms + 0. * 1e-80)
+                self.level_view_model.level_data_2.level_max = 20. * np.log10(self.old_max_2 + 0. * 1e-80)
+                self.level_view_model.level_data_ballistic_2.peak_iec = dB_to_IEC(max(self.level_view_model.level_data_2.level_max, self.level_view_model.level_data_2.level_rms))
+            else:
+                self.level_view_model.level_data_2.level_rms = 94 - mic_sensitivity + 10. * np.log10(value_rms + 0. * 1e-80)
+                self.level_view_model.level_data_2.level_max = 94 - 3 - mic_sensitivity + 20. * np.log10(self.old_max_2 + 0. * 1e-80)
+                self.level_view_model.level_data_ballistic_2.peak_iec = dB_to_SPL(max(self.level_view_model.level_data_2.level_max, self.level_view_model.level_data_2.level_rms))
 
     # method
     def canvasUpdate(self):
@@ -276,8 +288,10 @@ class Levels_Widget(QtWidgets.QWidget):
         self.i = self.i % LEVEL_TEXT_LABEL_STEPS
 
         level_mode = AudioBackend().get_level_mode()
-        meterScale = self.findMeterScale(self.qmlObject)
-        QMetaObject.invokeMethod(meterScale, "toggle", Q_ARG(QVariant, level_mode))
+        meterScale = self.findObject(self.qmlObject, "meterScale")
+        QMetaObject.invokeMethod(meterScale, "setScaleMode", Q_ARG(QVariant, level_mode))
+        singleMeter = self.findObject(self.qmlObject, "singleMeter")
+        QMetaObject.invokeMethod(singleMeter, "setScaleMode", Q_ARG(QVariant, level_mode))
 
     # slot
     def settings_called(self, checked):       

@@ -4,6 +4,8 @@ import QtQuick.Shapes 1.15
 import "iec.js" as IECFunctions
 
 Rectangle {
+    objectName: "singleMeter"
+
     color: "black"
     implicitWidth: 16
 
@@ -11,6 +13,19 @@ Rectangle {
     required property double levelRms
     required property double levelIECMaxBallistic
     required property int topOffset
+    property var scaleMode
+
+    function setScaleMode(mode) {
+        scaleMode = mode
+    }
+
+    function getImplicitHeight(value) {
+        if(scaleMode == "RMS") {
+            return IECFunctions.dB_to_IEC(value)
+        } else {
+            return IECFunctions.dB_to_SPL(value)
+        }
+    }
 
     Gradient {
         id: maxGradient
@@ -30,7 +45,7 @@ Rectangle {
 
     Item {
         implicitWidth: parent.width
-        implicitHeight: IECFunctions.dB_to_SPL(levelMax) * (parent.height - topOffset)
+        implicitHeight: getImplicitHeight(levelMax) * (parent.height - topOffset)
         anchors.bottom: parent.bottom
         clip: true
 
@@ -46,7 +61,7 @@ Rectangle {
 
     Item {
         implicitWidth: parent.width
-        implicitHeight: IECFunctions.dB_to_SPL(levelRms) * (parent.height - topOffset)
+        implicitHeight: getImplicitHeight(levelMax) * (parent.height - topOffset)
         anchors.bottom: parent.bottom
         clip: true
 

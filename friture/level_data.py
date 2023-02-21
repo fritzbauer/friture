@@ -20,7 +20,7 @@
 from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtProperty
 
-from friture.iec import dB_to_SPL
+from friture.iec import dB_to_IEC, dB_to_SPL
 
 class LevelData(QtCore.QObject):
     level_rms_changed = QtCore.pyqtSignal(float)
@@ -29,16 +29,19 @@ class LevelData(QtCore.QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self._level_rms = 20.
-        self._level_max = 20.
+        self._level_rms = -30.
+        self._level_max = -30.
 
     @pyqtProperty(float, notify=level_rms_changed)
     def level_rms(self):
         return self._level_rms
-    
+
     @pyqtProperty(float, notify=level_rms_changed)
     def level_rms_iec(self):
-        return dB_to_SPL(self._level_rms)
+        if(AudioBackend().get_level_mode() == "RMS"):
+            return dB_to_IEC(self._level_rms)
+        else:
+            return dB_to_SPL(self._level_rms)
     
     @level_rms.setter
     def level_rms(self, level_rms):
@@ -52,7 +55,10 @@ class LevelData(QtCore.QObject):
 
     @pyqtProperty(float, notify=level_max_changed)
     def level_max_iec(self):
-        return dB_to_SPL(self._level_max)
+        if(AudioBackend().get_level_mode() == "RMS"):
+            return dB_to_IEC(self._level_max)
+        else:
+            return dB_to_SPL(self._level_max)
     
     @level_max.setter
     def level_max(self, level_max):

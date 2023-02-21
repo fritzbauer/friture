@@ -12,7 +12,7 @@ Item {
     required property bool twoChannels
     property var scaleMode
 
-    function toggle(mode) {
+    function setScaleMode(mode) {
         scaleMode = mode
         if(mode == "RMS") {
             scaleModel.set(10,{ dB: 0 })
