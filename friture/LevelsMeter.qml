@@ -31,6 +31,7 @@ Rectangle {
             Layout.alignment: Qt.AlignLeft
             topOffset: metersLayout.topOffset
             twoChannels: level_view_model.two_channels
+            levelMode: level_view_model.level_mode
         }
 
         SingleMeter {

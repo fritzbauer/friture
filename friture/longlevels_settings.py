@@ -18,7 +18,6 @@
 # along with Friture.  If not, see <http://www.gnu.org/licenses/>.
 
 from PyQt5 import QtWidgets
-from friture.audiobackend import SAMPLING_RATE
 
 DEFAULT_MAXTIME = 600
 #DEFAULT_MINTIME = 20

@@ -139,6 +139,7 @@ class Levels_Widget(QtWidgets.QWidget):
         self.alpha2 = 1. - (1. - w) ** (1. / (n2 + 1))
 
         self.two_channels = False
+        self.level_mode = "RMS"
 
         self.i = 0
 
@@ -180,6 +181,10 @@ class Levels_Widget(QtWidgets.QWidget):
         elif floatdata.shape[0] == 1 and self.two_channels:
             self.two_channels = False
             self.level_view_model.two_channels = False
+
+        if self.level_mode != AudioBackend().level_mode:
+            self.level_mode = AudioBackend().level_mode
+            self.level_view_model.level_mode = AudioBackend().level_mode
 
         # first channel
         y1 = floatdata[0, :]
@@ -298,9 +303,9 @@ class Levels_Widget(QtWidgets.QWidget):
  
         self.i = self.i % LEVEL_TEXT_LABEL_STEPS
 
-        level_mode = AudioBackend().get_level_mode()
-        meterScale = self.findObject(self.qmlObject, "meterScale")
-        QMetaObject.invokeMethod(meterScale, "setScaleMode", Q_ARG(QVariant, level_mode))
+        #level_mode = AudioBackend().get_level_mode()
+        #meterScale = self.findObject(self.qmlObject, "meterScale")
+        #QMetaObject.invokeMethod(meterScale, "setScaleMode", Q_ARG(QVariant, level_mode))
         #levelsMeter = self.findObject(self.qmlObject, "levelsMeter")
         #QMetaObject.invokeMethod(levelsMeter, "setScaleMode", Q_ARG(QVariant, level_mode))
 

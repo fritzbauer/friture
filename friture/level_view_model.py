@@ -25,11 +25,13 @@ from friture.level_data import LevelData
 
 class LevelViewModel(QtCore.QObject):
     two_channels_changed = QtCore.pyqtSignal(bool)
+    level_mode_changed = QtCore.pyqtSignal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
         self._two_channels = False
+        self._level_mode = "RMS"
         self._level_data = LevelData(self)
         self._level_data_2 = LevelData(self)
         self._level_data_slow = LevelData(self)
@@ -46,6 +48,16 @@ class LevelViewModel(QtCore.QObject):
         if self._two_channels != two_channels:
             self._two_channels = two_channels
             self.two_channels_changed.emit(two_channels)
+
+    @pyqtProperty(str, notify=level_mode_changed)
+    def level_mode(self):
+        return self._level_mode
+    
+    @level_mode.setter
+    def level_mode(self, level_mode):
+        if self._level_mode != level_mode:
+            self._level_mode = level_mode
+            self.level_mode_changed.emit(level_mode)
 
     @pyqtProperty(LevelData, constant = True)
     def level_data(self):

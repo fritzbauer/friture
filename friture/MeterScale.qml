@@ -5,43 +5,28 @@ import "iec.js" as IECFunctions
 
 Item {
     id: meterScale
-    objectName: "meterScale"
     implicitWidth: 16
 
     required property int topOffset
     required property bool twoChannels
-    property var scaleMode
+    required property var levelMode
 
-    function setScaleMode(mode) {
-        scaleMode = mode
-        if(mode == "RMS") {
-            scaleModel.set(10,{ dB: 0 })
-            scaleModel.set(9, { dB: 0 })
-            scaleModel.set(8, { dB: 0 })
-            scaleModel.set(7, { dB: -3 })
-            scaleModel.set(6, { dB: -6 })
-            scaleModel.set(5, { dB: -10 })
-            scaleModel.set(4, { dB: -20 })
-            scaleModel.set(3, { dB: -30 })
-            scaleModel.set(2, { dB: -40 })
-            scaleModel.set(1, { dB: -50 })
-            scaleModel.set(0, { dB: -60 })
-        } else {
-            scaleModel.set(10, {dB: 11})
-            scaleModel.set(9,  {dB: 22})
-            scaleModel.set(8,  {dB: 33})
-            scaleModel.set(7,  {dB: 40})
-            scaleModel.set(6,  {dB: 50})
-            scaleModel.set(5,  {dB: 60})
-            scaleModel.set(4,  {dB: 70})
-            scaleModel.set(3,  {dB: 80})
-            scaleModel.set(2,  {dB: 90})
-            scaleModel.set(1,  {dB: 100})
-        }
+    ListModel {
+        id: levelModeRMS
+
+        ListElement { dB: 0 }
+        ListElement { dB: -3 }
+        ListElement { dB: -6 }
+        ListElement { dB: -10 }
+        ListElement { dB: -20 }
+        ListElement { dB: -30 }
+        ListElement { dB: -40 }
+        ListElement { dB: -50 }
+        ListElement { dB: -60 }
     }
 
     ListModel {
-        id: scaleModel
+        id: levelModeDBA
 
         ListElement { dB: 100 }
         ListElement { dB: 90 }
@@ -57,7 +42,7 @@ Item {
     }
 
     Repeater {
-        model: scaleModel
+        model: levelMode == "RMS" ? levelModeRMS : levelModeDBA
 
         Item {
             implicitWidth: 16
@@ -99,7 +84,7 @@ Item {
 
             function pathY(dB) {
                 var iec
-                if(scaleMode == "RMS") {
+                if(levelMode == "RMS") {
                     iec = IECFunctions.dB_to_IEC(dB);
                 } else {
                     iec = IECFunctions.dB_to_SPL(dB);
