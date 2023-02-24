@@ -20,10 +20,10 @@ Rectangle {
         SingleMeter {
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignLeft
-            levelMax: level_view_model.level_data.level_max
-            levelRms: level_view_model.level_data.level_rms
+            levelMax_iec: level_view_model.level_data.level_max_iec
+            levelRms_iec: level_view_model.level_data.level_rms_iec
             topOffset: metersLayout.topOffset
-            levelIECMaxBallistic: level_view_model.level_data_ballistic.peak_iec
+            levelIECMaxBallistic_iec: level_view_model.level_data_ballistic.peak_iec
         }
 
         MeterScale {
@@ -37,10 +37,10 @@ Rectangle {
             visible: level_view_model.two_channels
             Layout.fillHeight: true
             Layout.alignment: Qt.AlignLeft
-            levelMax: level_view_model.level_data_2.level_max
-            levelRms: level_view_model.level_data_2.level_rms
+            levelMax_iec: level_view_model.level_data_2.level_max_iec
+            levelRms_iec: level_view_model.level_data_2.level_rms_iec
             topOffset: metersLayout.topOffset
-            levelIECMaxBallistic: level_view_model.level_data_ballistic_2.peak_iec
+            levelIECMaxBallistic_iec: level_view_model.level_data_ballistic_2.peak_iec
         }
 
         Item {

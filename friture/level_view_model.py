@@ -30,7 +30,6 @@ class LevelViewModel(QtCore.QObject):
         super().__init__(parent)
 
         self._two_channels = False
-
         self._level_data = LevelData(self)
         self._level_data_2 = LevelData(self)
         self._level_data_slow = LevelData(self)

@@ -21,6 +21,7 @@ from PyQt5 import QtCore
 from PyQt5.QtCore import pyqtProperty
 
 from friture.iec import dB_to_IEC, dB_to_SPL
+from friture.audiobackend import AudioBackend
 
 class LevelData(QtCore.QObject):
     level_rms_changed = QtCore.pyqtSignal(float)

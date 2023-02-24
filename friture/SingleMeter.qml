@@ -9,23 +9,10 @@ Rectangle {
     color: "black"
     implicitWidth: 16
 
-    required property double levelMax
-    required property double levelRms
-    required property double levelIECMaxBallistic
+    required property double levelMax_iec
+    required property double levelRms_iec
+    required property double levelIECMaxBallistic_iec
     required property int topOffset
-    property var scaleMode
-
-    function setScaleMode(mode) {
-        scaleMode = mode
-    }
-
-    function getImplicitHeight(value) {
-        if(scaleMode == "RMS") {
-            return IECFunctions.dB_to_IEC(value)
-        } else {
-            return IECFunctions.dB_to_SPL(value)
-        }
-    }
 
     Gradient {
         id: maxGradient
@@ -45,7 +32,7 @@ Rectangle {
 
     Item {
         implicitWidth: parent.width
-        implicitHeight: getImplicitHeight(levelMax) * (parent.height - topOffset)
+        implicitHeight: levelMax_iec * (parent.height - topOffset)
         anchors.bottom: parent.bottom
         clip: true
 
@@ -61,7 +48,7 @@ Rectangle {
 
     Item {
         implicitWidth: parent.width
-        implicitHeight: getImplicitHeight(levelMax) * (parent.height - topOffset)
+        implicitHeight: levelRms_iec * (parent.height - topOffset)
         anchors.bottom: parent.bottom
         clip: true
 
@@ -91,11 +78,11 @@ Rectangle {
     Shape {
         width: parent.width
         x: 0
-        y: pathY(levelIECMaxBallistic)
+        y: pathY(levelIECMaxBallistic_iec)
 
         ShapePath {
             strokeWidth: 1
-            strokeColor: iec_to_color(levelIECMaxBallistic)
+            strokeColor: iec_to_color(levelIECMaxBallistic_iec)
             startX: 0; startY: 0
             PathLine { x: 16; y: 0 }
 

@@ -18,7 +18,7 @@ function dB_to_IEC(dB) {
 
 function dB_to_SPL(dB) {
     return dB * 0.01;
-    if (dB < 10.0) {
+    /*if (dB < 10.0) {
         return 0.0;
     } else if (dB < 20.0) {
         return (dB + 70.0) * 0.0025;
@@ -32,5 +32,5 @@ function dB_to_SPL(dB) {
         return (dB + 30.0) * 0.02 + 0.3;
     } else {
         return (dB + 20.0) * 0.025 + 0.5;
-    }
+    }*/
 }

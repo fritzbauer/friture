@@ -144,6 +144,7 @@ class Levels_Widget(QtWidgets.QWidget):
 
         self.weighting_filter = A_weighting(SAMPLING_RATE, output='sos')
         self.weighting_filter_zi = sosfilt_zi(self.weighting_filter)
+        self.weighting_filter_zi_2 = self.weighting_filter_zi
         self.logger.info(self.weighting_filter)
         self.counter = 0        
 
@@ -214,6 +215,7 @@ class Levels_Widget(QtWidgets.QWidget):
                 self.logger.info(f"ERROR: {len(self.weighting_filter)} samples required but received only {len(y1)} samples.")
 
             y1, self.weighting_filter_zi = sosfilt(self.weighting_filter, y1, zi=self.weighting_filter_zi)
+            
 
         # exponential smoothing for max
         if len(y1) > 0:
@@ -230,11 +232,18 @@ class Levels_Widget(QtWidgets.QWidget):
         self.old_rms = value_rms
 
         if(AudioBackend().get_level_mode() == "RMS"):
+            val = 10. * np.log10(value_rms + 0. * 1e-80)
+            #print(f"{val}: {dB_to_IEC(val)}" )
+            #print(f"{val}: {dB_to_SPL(val)}" )
             self.level_view_model.level_data.level_rms = 10. * np.log10(value_rms + 0. * 1e-80)
             self.level_view_model.level_data.level_max = 20. * np.log10(self.old_max + 0. * 1e-80)
             self.level_view_model.level_data_ballistic.peak_iec = dB_to_IEC(max(self.level_view_model.level_data.level_max, self.level_view_model.level_data.level_rms))
         else:
             mic_sensitivity = AudioBackend().get_mic_sensitivity()
+            val = 94 - mic_sensitivity + 10. * np.log10(value_rms + 0. * 1e-80)
+            #print(f"{val}: {dB_to_IEC(val)}" )
+            #print(f"{val}: {dB_to_SPL(val)}" )
+
             self.level_view_model.level_data.level_rms = 94 - mic_sensitivity + 10. * np.log10(value_rms + 0. * 1e-80)
             self.level_view_model.level_data.level_max = 94 - 3 - mic_sensitivity + 20. * np.log10(self.old_max + 0. * 1e-80)
             #if self.counter < 200:
@@ -247,7 +256,9 @@ class Levels_Widget(QtWidgets.QWidget):
         if self.two_channels:
             # second channel
             y2 = floatdata[1, :]
-
+            
+            if(AudioBackend().get_level_mode() == "dbA"):
+                y2, self.weighting_filter_zi_2 = sosfilt(self.weighting_filter, y2, zi=self.weighting_filter_zi_2)
             # exponential smoothing for max
             if len(y2) > 0:
                 value_max = np.abs(y2).max()
@@ -265,7 +276,7 @@ class Levels_Widget(QtWidgets.QWidget):
                 self.level_view_model.level_data_2.level_rms = 10. * np.log10(value_rms + 0. * 1e-80)
                 self.level_view_model.level_data_2.level_max = 20. * np.log10(self.old_max_2 + 0. * 1e-80)
                 self.level_view_model.level_data_ballistic_2.peak_iec = dB_to_IEC(max(self.level_view_model.level_data_2.level_max, self.level_view_model.level_data_2.level_rms))
-            else:
+            else:                
                 self.level_view_model.level_data_2.level_rms = 94 - mic_sensitivity + 10. * np.log10(value_rms + 0. * 1e-80)
                 self.level_view_model.level_data_2.level_max = 94 - 3 - mic_sensitivity + 20. * np.log10(self.old_max_2 + 0. * 1e-80)
                 self.level_view_model.level_data_ballistic_2.peak_iec = dB_to_SPL(max(self.level_view_model.level_data_2.level_max, self.level_view_model.level_data_2.level_rms))
@@ -290,8 +301,8 @@ class Levels_Widget(QtWidgets.QWidget):
         level_mode = AudioBackend().get_level_mode()
         meterScale = self.findObject(self.qmlObject, "meterScale")
         QMetaObject.invokeMethod(meterScale, "setScaleMode", Q_ARG(QVariant, level_mode))
-        singleMeter = self.findObject(self.qmlObject, "singleMeter")
-        QMetaObject.invokeMethod(singleMeter, "setScaleMode", Q_ARG(QVariant, level_mode))
+        #levelsMeter = self.findObject(self.qmlObject, "levelsMeter")
+        #QMetaObject.invokeMethod(levelsMeter, "setScaleMode", Q_ARG(QVariant, level_mode))
 
     # slot
     def settings_called(self, checked):       
